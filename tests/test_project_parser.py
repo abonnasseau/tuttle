@@ -131,6 +131,17 @@ class TestProjectParser():
         print process._code
         assert process._code == "Some code\n"
 
+    def test_quoted_resources_can_contain_spaces(self):
+        pp = ProjectParser()
+        project = """'file:///result1 1'  file:///result2 <- file:///source1 'file:///source2 2'
+        Some code
+        """
+        pp.set_project(project)
+        pp.read_line()
+        process = pp.parse_section()
+        assert len(process._inputs) == 2
+        assert len(process._outputs) == 2
+
     def test_read_section_multiple_inputs_and_outputs(self):
         """Read a sections with multiple inputs and outputs"""
         pp = ProjectParser()
