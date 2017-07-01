@@ -5,7 +5,7 @@ from error import TuttleError
 from workflow_builder import WorkflowBuilder
 from workflow import Workflow
 from os.path import basename
-
+import shlex
 
 class ParseError(TuttleError):
     def __init__(self, message, filename, line):
@@ -170,16 +170,20 @@ class ProjectParser():
         if not process:
             raise InvalidProcessorError("Invalid processor : '{}' ".format(processor_name), self._filename, self._num_line)
         # Main separator is space, but comas are still accepted
-        inputs = self._line[arrow_pos + 2:mark_pos].replace(self.OLD_SEP, self.SPACE_SEP)
-        input_urls = inputs.split()
+        inputs = self._line[arrow_pos + 2:mark_pos]
+        input_urls = shlex.shlex(inputs, posix=True)
+        input_urls.whitespace = self.SPACE_SEP + self.OLD_SEP
+        input_urls.whitespace_split = True
         for input_url in input_urls:
             in_res = self.wb.get_or_build_resource(input_url.strip(), self.resources)
             if in_res is None:
                 raise InvalidResourceError("Invalid resource url : '{}' in inputs".format(input_url.strip()), self._filename, self._num_line)
             process.add_input(in_res)
         # Main separator is space, but comas are still accepted
-        outputs = self._line[:arrow_pos].replace(self.OLD_SEP, self.SPACE_SEP)
-        outputs_urls = outputs.split()
+        outputs = self._line[:arrow_pos]
+        outputs_urls = shlex.shlex(outputs, posix=True)
+        outputs_urls.whitespace = self.SPACE_SEP + self.OLD_SEP
+        outputs_urls.whitespace_split = True
         for output_url in outputs_urls:
             out_res = self.wb.get_or_build_resource(output_url.strip(), self.resources)
             if out_res is None:
